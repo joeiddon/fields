@@ -21,22 +21,19 @@ gl.useProgram(program);
 gl.clearColor(0, 0, 0, 1);
 
 let a_position_loc = gl.getAttribLocation(program, 'a_position');
+let a_charge_pos_loc = gl.getAttribLocation(program, 'a_charge_pos');
 
 gl.enableVertexAttribArray(a_position_loc);
 
 let positions_buffer = gl.createBuffer();
 gl.bindBuffer(gl.ARRAY_BUFFER, positions_buffer);
 gl.enableVertexAttribArray(a_position_loc);
-gl.vertexAttribPointer(a_position_loc, 2, gl.FLOAT, false, 0, 0);
+gl.vertexAttribPointer(a_position_loc, 3, gl.FLOAT, false, 0, 0);
 
-function draw_lines(lines) {
-    // Lines should be an array of shape (n, 2).
-    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(lines.flat()), gl.STATIC_DRAW);
-    gl.clear(gl.COLOR_BUFFER_BIT);
-    gl.drawArrays(gl.LINES, 0, lines.length);
-}
+let step = parseFloat(window.location.hash.slice(1));
+if (!(step > 0)) step = 0.05; //default value for if no hash, so step is NaN
 
-let step = 0.04;
+window.onhashchange = () => window.location.reload();
 
 function fit_canvas_to_screen(){
     canvas.width = innerWidth;
@@ -46,32 +43,33 @@ function fit_canvas_to_screen(){
 fit_canvas_to_screen();
 window.addEventListener('resize', fit_canvas_to_screen);
 
-function update(c) {
-    let k = 0.003;
+// Populate position buffer.
+let positions = [];
+for (let y = -1; y <= 1; y += step)
+    for (let x = -1; x <= 1; x += step)
+        positions.push(
+            x, y, 0,
+            x, y, 1
+        ); // the z component is indicating vector end of line
 
-    let lines = [];
-    for (let y = -1; y <= 1; y += step)
-        for (let x = -1; x <= 1; x += step) {
-            if (Math.abs(x - c[0]) +  Math.abs(y - c[1]) < 0.2) continue;
-            let r = [x - c[0], y - c[1]];
-            let d = (r[0] ** 2 + r[1] ** 2) ** 0.5;
-            let n = r.map(c => c / d);
-            let E = n.map(c => - k * c / (d ** 2));
-            lines.push([x, y]);
-            lines.push([x + E[0], y + E[1]]);
-            //lines.push([x + E[0], y + E[1]]);
-            //lines.push([x + E[0], y + E[1] - 0.01]);
-        }
-    draw_lines(lines);
+gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(positions), gl.STATIC_DRAW);
+
+let charge_position = [0, 0];
+
+function update() {
+    gl.vertexAttrib2fv(a_charge_pos_loc, new Float32Array(charge_position));
+    gl.clear(gl.COLOR_BUFFER_BIT);
+    gl.drawArrays(gl.LINES, 0, positions.length / 3);
+    requestAnimationFrame(update);
 }
 
-function toclipspace(c) {
+update();
+
+function toclipspace(x, y) {
     return [
-        (c[0] / canvas.width) * 2 - 1,
-        -((c[1] / canvas.height) * 2 - 1),
+        (x / canvas.width) * 2 - 1,
+        -((y / canvas.height) * 2 - 1),
     ];
 }
 
-update([0, 0]);
-
-canvas.addEventListener('mousemove', e => update(toclipspace([e.x, e.y])));
+canvas.addEventListener('mousemove', e => {charge_position = toclipspace(e.x, e.y);});

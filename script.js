@@ -36,7 +36,10 @@ function draw_lines(lines) {
     gl.drawArrays(gl.LINES, 0, lines.length);
 }
 
-let step = 0.04;
+let step = parseFloat(window.location.hash.slice(1));
+if (!(step > 0)) step = 0.05; //default value for if no hash, so step is NaN
+
+window.onhashchange = () => window.location.reload();
 
 function fit_canvas_to_screen(){
     canvas.width = innerWidth;
@@ -46,32 +49,32 @@ function fit_canvas_to_screen(){
 fit_canvas_to_screen();
 window.addEventListener('resize', fit_canvas_to_screen);
 
-function update(c) {
+let c = [0, 0];
+function update() {
     let k = 0.003;
 
     let lines = [];
     for (let y = -1; y <= 1; y += step)
         for (let x = -1; x <= 1; x += step) {
-            if (Math.abs(x - c[0]) +  Math.abs(y - c[1]) < 0.2) continue;
-            let r = [x - c[0], y - c[1]];
+            let r = [c[0] - x, c[1] - y];
             let d = (r[0] ** 2 + r[1] ** 2) ** 0.5;
             let n = r.map(c => c / d);
-            let E = n.map(c => - k * c / (d ** 2));
+            let E = n.map(c => k * c / (d ** 2));
+            if ((E[0] ** 2 + E[1] ** 2) ** 0.5 > d) E = r;
             lines.push([x, y]);
             lines.push([x + E[0], y + E[1]]);
-            //lines.push([x + E[0], y + E[1]]);
-            //lines.push([x + E[0], y + E[1] - 0.01]);
         }
     draw_lines(lines);
+    requestAnimationFrame(update);
 }
 
-function toclipspace(c) {
+update();
+
+function toclipspace(x, y) {
     return [
-        (c[0] / canvas.width) * 2 - 1,
-        -((c[1] / canvas.height) * 2 - 1),
+        (x / canvas.width) * 2 - 1,
+        -((y / canvas.height) * 2 - 1),
     ];
 }
 
-update([0, 0]);
-
-canvas.addEventListener('mousemove', e => update(toclipspace([e.x, e.y])));
+canvas.addEventListener('mousemove', e => {c = toclipspace(e.x, e.y);});

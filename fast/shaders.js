@@ -12,10 +12,21 @@ let vertex_shader_src = `
 //identifier prefixes like a_ and u_ signify types
 
 //rendering verticies
-attribute vec2 a_position;
+attribute vec3 a_position; // the z is a 0 or 1 indicating if vector tail or not
+attribute vec2 a_charge_pos;
 
 void main(){
-    gl_Position = vec4(a_position, 0, 1);
+    // could have used an if statement to check if (a_position.z == 1.0) ...
+
+    vec2 r = a_charge_pos - a_position.xy;
+    vec2 E = r / pow(length(r), 3.0) * 0.003;
+
+    E = length(E) > length(r) ? r : E;
+
+    gl_Position = vec4(
+        a_position.xy + a_position.z * E,
+        0,
+        1);
 }
 `;
 
