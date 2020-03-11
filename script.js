@@ -11,7 +11,7 @@
  */
 
 // ensure this matches the vertex shader #define
-const MAX_CHARGES = 10;
+const MAX_CHARGES = 50;
 
 let canvas = document.getElementById('canvas');
 let gl = canvas.getContext('webgl');

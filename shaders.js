@@ -12,7 +12,7 @@
 let vertex_shader_src = `
 //identifier prefixes like a_ and u_ signify types
 
-#define MAX_CHARGES 10
+#define MAX_CHARGES 50
 #define E_SCALING_FACTOR 0.003;
 
 // consider using structs ?
