@@ -42,7 +42,7 @@ gl.bindBuffer(gl.ARRAY_BUFFER, positions_buffer);
 gl.vertexAttribPointer(a_position_loc, 2, gl.FLOAT, false, 0, 0);
 
 let step = parseFloat(window.location.hash.slice(1));
-if (!(step > 0)) step = 0.05; //default value for if no hash, so step is NaN
+if (!(step > 0)) step = 0.005; //default value for if no hash, so step is NaN
 window.onhashchange = () => window.location.reload();
 
 // positions are in charge / grid coordiantes x, y in [0,1]
