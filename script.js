@@ -48,18 +48,26 @@ window.onhashchange = () => window.location.reload();
 // positions are in charge / grid coordiantes x, y in [0,1]
 let positions = [];
 // the 1 - step/2 is to avoid floating point comparison errors
-for (let y = -1; y < 0.1 - step / 2; y += step)
+for (let y = -1; y < 1 - step / 2; y += step)
     for (let x = -1; x < 1 - step / 2; x += step)
         positions.push(
                  x, y,
             x+step, y,
             x+step, y+step,
                  x, y,
-                 x, y+step,
-            x+step, y+step
+            x+step, y+step,
+                 x, y+step
         );
 
 gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(positions), gl.STATIC_DRAW);
+
+//clockwise triangles are back-facing, counter-clockwise are front-facing
+//switch two verticies to easily flip direction a triangle is facing
+//"cull face" feature means kill (don't render) back-facing triangles
+//gl.enable(gl.CULL_FACE);
+
+//enable the z-buffer (only drawn if z component LESS than that already there)
+gl.enable(gl.DEPTH_TEST);
 
 
 function perspective_mat(fov, aspect, near, far){
@@ -73,7 +81,7 @@ function perspective_mat(fov, aspect, near, far){
 
 let fov = misc.deg_to_rad(60);
 let aspect = canvas.width/canvas.height;
-let near = 0.2; //closest z-coordinate to be rendered
+let near = 0.1; //closest z-coordinate to be rendered
 let far = 50; //furthest z-coordianted to be rendered
 let perspective = perspective_mat(fov, aspect, near, far);
 

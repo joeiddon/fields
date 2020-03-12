@@ -13,8 +13,10 @@ let vertex_shader_src = `
 //identifier prefixes like a_ and u_ signify types
 
 #define MAX_CHARGES 50
-#define E_SCALING_FACTOR 0.01
-#define E_MAX_LENGTH 1.2
+#define E_SCALING_FACTOR 0.005
+#define E_MAX_LENGTH 0.8
+#define OSCILL 15.0
+#define PI 3.14159265358979
 
 // consider using structs ?
 
@@ -48,7 +50,15 @@ void main(){
     if (length(E) > E_MAX_LENGTH) E *= E_MAX_LENGTH / length(E);
 
     gl_Position = u_matrix * vec4(a_position.x, length(E), a_position.y, 1);
-    color = vec4(length(E), 0.1, 0.1, 1);
+
+    float v = length(E);
+    color = vec4(
+        sin(v * OSCILL) * (0.2 + v),
+        sin(v * OSCILL + PI * 2.0 / 3.0) * (0.2 + v),
+        sin(v * OSCILL + PI * 4.0 / 3.0) * (0.3 + v),
+        1
+    );
+    //color = vec4(v, 0.1, 0.1, 1);
 }
 `;
 
