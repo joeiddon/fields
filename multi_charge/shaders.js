@@ -13,29 +13,32 @@ let vertex_shader_src = `
 //identifier prefixes like a_ and u_ signify types
 
 #define MAX_CHARGES 50
-#define E_SCALING_FACTOR 0.01
-#define E_MAX_LENGTH 1.2
+#define E_SCALING_FACTOR 0.003;
 
 // consider using structs ?
 
-attribute vec2 a_position;
-
-uniform mat4 u_matrix;
+attribute vec3 a_position; // the z is a 0 or 1 indicating if vector tail or not
 
 // would probably better to pass a uniform of the number of charges used
 uniform vec3 u_charges[MAX_CHARGES]; // the z is a 0 or 1 indicating if in use or not
-
-varying vec4 color;
 
 vec2 E_influence(int charge_index) {
     // returns the electric field from the charge at index charge_index
     // in the charges global array
     vec2 r = u_charges[charge_index].xy - a_position.xy;
     vec2 E = r / pow(length(r), 3.0) * E_SCALING_FACTOR;
+    E = length(E) > length(r) ? r : E;
     return E;
 }
 
 void main(){
+    // if this vertex is the tail of a vector, don't need to add the
+    // electric field
+    if (a_position.z == 1.0) {
+        gl_Position = vec4(a_position.xy, 0, 1);
+        return;
+    }
+
     vec2 E = vec2(0, 0);
 
     for (int i = 0; i < MAX_CHARGES; i++){
@@ -45,19 +48,14 @@ void main(){
         E += E_influence(i);
     }
 
-    if (length(E) > E_MAX_LENGTH) E *= E_MAX_LENGTH / length(E);
-
-    gl_Position = u_matrix * vec4(a_position.x, length(E), a_position.y, 1);
-    color = vec4(length(E), 0.1, 0.1, 1);
+    gl_Position = vec4(a_position.xy + E, 0, 1);
 }
 `;
 
 let fragment_shader_src = `
 precision mediump float;
 
-varying vec4 color;
-
 void main(){
-    gl_FragColor = color;
+    gl_FragColor = vec4(1, 1, 1, 1);
 }
 `;
