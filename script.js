@@ -32,7 +32,8 @@ gl.useProgram(program);
 gl.clearColor(0, 0, 0, 1);
 
 let a_position_loc = gl.getAttribLocation(program, 'a_position');
-let u_matrix_loc = gl.getUniformLocation(program, 'u_matrix');
+let u_world_matrix_loc = gl.getUniformLocation(program, 'u_world_matrix');
+let u_view_matrix_loc = gl.getUniformLocation(program, 'u_view_matrix');
 let u_charges_loc = gl.getUniformLocation(program, 'u_charges');
 
 gl.enableVertexAttribArray(a_position_loc);
@@ -82,7 +83,7 @@ let fov = misc.deg_to_rad(60);
 let aspect = canvas.width/canvas.height;
 let near = 0.1; //closest z-coordinate to be rendered
 let far = 50; //furthest z-coordianted to be rendered
-let perspective = perspective_mat(fov, aspect, near, far);
+let m_perspective = perspective_mat(fov, aspect, near, far);
 
 let cam_yaw = 0;
 let cam_pitch = -0.5;
@@ -91,9 +92,9 @@ let cam_dist = 2.5;
 function calc_cam_pos(){
     let base = Math.cos(cam_pitch) * cam_dist;
     return [
-        Math.cos(cam_yaw) * base,
+        Math.sin(cam_yaw) * base,
         -Math.sin(cam_pitch) * cam_dist,
-        Math.sin(cam_yaw) * base
+        -Math.cos(cam_yaw) * base
     ]
 }
 
@@ -101,10 +102,12 @@ let charges = [];
 let mouse_charge = [0, 0];
 
 function set_u_matrix(){
-    let matrix = m4.identity();
-    matrix = m4.multiply(m4.inverse(m4.orient(calc_cam_pos(), [0, 0, 0])), matrix);
-    matrix = m4.multiply(perspective, matrix);
-    gl.uniformMatrix4fv(u_matrix_loc, false, m4.gl_format(matrix));
+    //transforms 3d object so along z axis
+    let m_view = m4.inverse(m4.orient(calc_cam_pos(), [0,0,0]));
+    //transforms 3d object so along z axis and then maps to 2
+    let m_world = m4.multiply(m_perspective, m_view);
+    gl.uniformMatrix4fv(u_world_matrix_loc, false, m4.gl_format(m_world));
+    gl.uniformMatrix4fv(u_view_matrix_loc, false, m4.gl_format(m_view));
 }
 
 function update() {

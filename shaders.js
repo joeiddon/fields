@@ -22,35 +22,53 @@ let vertex_shader_src = `
 
 attribute vec2 a_position;
 
-uniform mat4 u_matrix;
+uniform mat4 u_world_matrix;
+uniform mat4 u_view_matrix;
 
 // would probably better to pass a uniform of the number of charges used
 uniform vec3 u_charges[MAX_CHARGES]; // the z is a 0 or 1 indicating if in use or not
 
 varying vec4 color;
 
-float V_influence(int charge_index) {
-    // returns the electric potential from the charge at index charge_index
-    // in the charges global array
-    vec2 r = u_charges[charge_index].xy - a_position.xy;
-    float V = 1.0 / length(r) * V_SCALING_FACTOR;
-    return V;
-}
-
-void main(){
+float compute_V() {
     float V = 0.0;
-
     for (int i = 0; i < MAX_CHARGES; i++){
         // skip charges that are not being used
         if (u_charges[i].z == 0.0) continue;
-
-        V += V_influence(i);
+        vec2 r = u_charges[i].xy - a_position.xy;
+        float Vi = 1.0 / length(r) * V_SCALING_FACTOR;
+        V += Vi;
     }
-
     if (V > V_MAX) V = V_MAX;
+    return V;
+}
 
-    gl_Position = u_matrix * vec4(a_position.x, V, a_position.y, 1);
+vec3 compute_normal() {
+    float dfdx = 0.0;
+    float dfdy = 0.0;
+    for (int i = 0; i < MAX_CHARGES; i++){
+        // skip charges that are not being used
+        if (u_charges[i].z == 0.0) continue;
+        vec2 r = u_charges[i].xy - a_position.xy;
+        dfdx += - (a_position.x - u_charges[i].x) / pow(length(r), 3.0);
+        dfdy += - (a_position.y - u_charges[i].y) / pow(length(r), 3.0);
+    }
+    vec3 n = vec3(dfdx, 1, -dfdy);
+    return n / length(n);
+}
 
+void main(){
+    float V = compute_V();
+
+    vec3 vertex = vec3(a_position.x, V, a_position.y);
+    gl_Position = u_world_matrix * vec4(vertex, 1);
+
+
+    vec3 light = vec3(-0.05, -19.0, 0);
+    light = normalize(u_view_matrix * vec4(light, 1)).xyz;
+    color = vec4(0.5 * (a_position.x + 1.0), 0.5 * (a_position.y + 1.0), 0, 1);
+    color.xyz *= (1.0 + 0.0 * dot(light, -compute_normal()));
+    /*
     float v = V;
     color = vec4(
         sin(v * OSCILL) * (0.2 + v),
@@ -58,7 +76,7 @@ void main(){
         sin(v * OSCILL + PI * 4.0 / 3.0) * (0.3 + v),
         1
     );
-    //color = vec4(v, 0.1, 0.1, 1);
+    */
 }
 `;
 
