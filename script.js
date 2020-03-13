@@ -35,6 +35,7 @@ let a_position_loc = gl.getAttribLocation(program, 'a_position');
 let u_world_matrix_loc = gl.getUniformLocation(program, 'u_world_matrix');
 let u_view_matrix_loc = gl.getUniformLocation(program, 'u_view_matrix');
 let u_charges_loc = gl.getUniformLocation(program, 'u_charges');
+let u_light_loc = gl.getUniformLocation(program, 'u_light');
 
 gl.enableVertexAttribArray(a_position_loc);
 
@@ -43,7 +44,7 @@ gl.bindBuffer(gl.ARRAY_BUFFER, positions_buffer);
 gl.vertexAttribPointer(a_position_loc, 2, gl.FLOAT, false, 0, 0);
 
 let step = parseFloat(window.location.hash.slice(1));
-if (!(step > 0)) step = 0.005; //default value for if no hash, so step is NaN
+if (!(step > 0)) step = 0.01; //default value for if no hash, so step is NaN
 window.onhashchange = () => window.location.reload();
 
 // positions are in charge / grid coordiantes x, y in [0,1]
@@ -79,39 +80,46 @@ function perspective_mat(fov, aspect, near, far){
     ];
 }
 
-let fov = misc.deg_to_rad(60);
-let aspect = canvas.width/canvas.height;
+let fov = misc.deg_to_rad(50);
 let near = 0.1; //closest z-coordinate to be rendered
 let far = 50; //furthest z-coordianted to be rendered
-let m_perspective = perspective_mat(fov, aspect, near, far);
+let m_perspective;
 
-let cam_yaw = 0;
-let cam_pitch = -0.5;
-let cam_dist = 2.5;
-
-function calc_cam_pos(){
-    let base = Math.cos(cam_pitch) * cam_dist;
-    return [
-        Math.sin(cam_yaw) * base,
-        -Math.sin(cam_pitch) * cam_dist,
-        -Math.cos(cam_yaw) * base
-    ]
+function calculate_perspective_matrix() {
+    // put in function so can call again on canvas re-size when aspect changes
+    let aspect = canvas.width/canvas.height;
+    m_perspective = perspective_mat(fov, aspect, near, far);
 }
+calculate_perspective_matrix();
+window.addEventListener('resize', calculate_perspective_matrix);
+
+let cam = [0, 1.5, -2];
+
+// space is the grid
+let space_yaw = 0;
+let space_pitch = 0;
+
+let light = [-0.5, -1.5, 0.8]; // normalised in vertex shader
 
 let charges = [];
 let mouse_charge = [0, 0];
 
 function set_u_matrix(){
-    //transforms 3d object so along z axis
-    let m_view = m4.inverse(m4.orient(calc_cam_pos(), [0,0,0]));
-    //transforms 3d object so along z axis and then maps to 2
+    // matrices in right-to-left order (i.e. in order of application)
+
+    // rotates space according to space_yaw and space_pitch
+    let m_rot = m4.multiply(m4.rotation_x(space_pitch), m4.rotation_y(space_yaw));
+    //transforms in front of cam's view
+    let m_view = m4.multiply(m4.inverse(m4.orient(cam, [0,0,0])), m_rot);
+    //maps 3d to 2d
     let m_world = m4.multiply(m_perspective, m_view);
     gl.uniformMatrix4fv(u_world_matrix_loc, false, m4.gl_format(m_world));
-    gl.uniformMatrix4fv(u_view_matrix_loc, false, m4.gl_format(m_view));
+    gl.uniformMatrix4fv(u_view_matrix_loc, false, m4.gl_format(m_rot));
 }
 
 function update() {
     set_u_matrix();
+    gl.uniform3fv(u_light_loc, new Float32Array(light));
     let u_charges_data = [...mouse_charge, 1];
     for (let i = 0; i < MAX_CHARGES - 1; i ++){ // -1 because one taken up by mouse
         if (i < charges.length) u_charges_data.push(...charges[i], 1);
@@ -136,8 +144,8 @@ canvas.addEventListener('mousemove', function(e) {
     let sensitivity = 1000;
     // if middle click held down, so panning
     if (e.buttons == 2) {
-        cam_yaw -= e.movementX / sensitivity;
-        cam_pitch -= e.movementY / sensitivity;
+        space_yaw -= e.movementX / sensitivity;
+        space_pitch -= e.movementY / sensitivity;
     } else {
         // move mouse charge
         mouse_charge = toclipspace(e.x, e.y);

@@ -15,7 +15,7 @@ let vertex_shader_src = `
 #define MAX_CHARGES 50
 #define V_SCALING_FACTOR 0.04
 #define V_MAX 0.8
-#define OSCILL 15.0
+#define OSCILL 3.0
 #define PI 3.14159265358979
 
 // consider using structs ?
@@ -24,6 +24,8 @@ attribute vec2 a_position;
 
 uniform mat4 u_world_matrix;
 uniform mat4 u_view_matrix;
+
+uniform vec3 u_light;
 
 // would probably better to pass a uniform of the number of charges used
 uniform vec3 u_charges[MAX_CHARGES]; // the z is a 0 or 1 indicating if in use or not
@@ -39,7 +41,7 @@ float compute_V() {
         float Vi = 1.0 / length(r) * V_SCALING_FACTOR;
         V += Vi;
     }
-    if (V > V_MAX) V = V_MAX;
+    // if (V > V_MAX) V = V_MAX;
     return V;
 }
 
@@ -53,7 +55,7 @@ vec3 compute_normal() {
         dfdx += - (a_position.x - u_charges[i].x) / pow(length(r), 3.0);
         dfdy += - (a_position.y - u_charges[i].y) / pow(length(r), 3.0);
     }
-    vec3 n = vec3(dfdx, 1, -dfdy);
+    vec3 n = vec3(-dfdx, 1, -dfdy);
     return n / length(n);
 }
 
@@ -63,20 +65,20 @@ void main(){
     vec3 vertex = vec3(a_position.x, V, a_position.y);
     gl_Position = u_world_matrix * vec4(vertex, 1);
 
-
-    vec3 light = vec3(-0.05, -19.0, 0);
-    light = normalize(u_view_matrix * vec4(light, 1)).xyz;
-    color = vec4(0.5 * (a_position.x + 1.0), 0.5 * (a_position.y + 1.0), 0, 1);
-    color.xyz *= (1.0 + 0.0 * dot(light, -compute_normal()));
-    /*
+    vec3 reflected_ray = -normalize(u_light);
+    vec3 n = compute_normal();
+    n = (u_view_matrix * vec4(n, 1)).xyz;
+    float intensity = dot(reflected_ray, n);
+    if (intensity < 0.0) intensity = 0.0;
+    //color = vec4(1, 0, 0, 1);
     float v = V;
     color = vec4(
-        sin(v * OSCILL) * (0.2 + v),
-        sin(v * OSCILL + PI * 2.0 / 3.0) * (0.2 + v),
-        sin(v * OSCILL + PI * 4.0 / 3.0) * (0.3 + v),
+        sin(v * OSCILL),
+        sin(v * OSCILL + PI * 2.0 / 3.0),
+        sin(v * OSCILL + PI * 4.0 / 3.0),
         1
     );
-    */
+    color.xyz *= (0.2 + 0.8 * intensity);
 }
 `;
 
