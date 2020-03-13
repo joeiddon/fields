@@ -93,7 +93,7 @@ function calculate_perspective_matrix() {
 calculate_perspective_matrix();
 window.addEventListener('resize', calculate_perspective_matrix);
 
-let cam = [0, 1.5, -2];
+let cam = [0, 1.5, -2]; // issues when cam is up x-axis with panning of space_pitch !!
 
 // space is the grid
 let space_yaw = 0;
@@ -141,9 +141,9 @@ function toclipspace(x, y) {
 }
 
 canvas.addEventListener('mousemove', function(e) {
-    let sensitivity = 1000;
+    let sensitivity = 400;
     // if middle click held down, so panning
-    if (e.buttons == 2) {
+    if (e.buttons & 2) {
         space_yaw -= e.movementX / sensitivity;
         space_pitch -= e.movementY / sensitivity;
     } else {

@@ -72,12 +72,13 @@ void main(){
     if (intensity < 0.0) intensity = 0.0;
     //color = vec4(1, 0, 0, 1);
     float v = V;
-    color = vec4(
+    /*color = vec4(
         sin(v * OSCILL),
         sin(v * OSCILL + PI * 2.0 / 3.0),
         sin(v * OSCILL + PI * 4.0 / 3.0),
         1
-    );
+    );*/
+    color = vec4(1, 0.7-v, 0, 1);
     color.xyz *= (0.2 + 0.8 * intensity);
 }
 `;
