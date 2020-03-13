@@ -69,7 +69,6 @@ gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(positions), gl.STATIC_DRAW);
 //enable the z-buffer (only drawn if z component LESS than that already there)
 gl.enable(gl.DEPTH_TEST);
 
-
 function perspective_mat(fov, aspect, near, far){
     return [
         [ 1/(aspect*Math.tan(fov/2)),                 0,                     0,                     0],
@@ -85,15 +84,25 @@ let near = 0.1; //closest z-coordinate to be rendered
 let far = 50; //furthest z-coordianted to be rendered
 let perspective = perspective_mat(fov, aspect, near, far);
 
-let cam_pos = [0, 1.5, -2];
-let cam_dir = [0, -0.6, 1];
+let cam_yaw = 0;
+let cam_pitch = -0.5;
+let cam_dist = 2.5;
+
+function calc_cam_pos(){
+    let base = Math.cos(cam_pitch) * cam_dist;
+    return [
+        Math.cos(cam_yaw) * base,
+        -Math.sin(cam_pitch) * cam_dist,
+        Math.sin(cam_yaw) * base
+    ]
+}
 
 let charges = [];
 let mouse_charge = [0, 0];
 
 function set_u_matrix(){
     let matrix = m4.identity();
-    matrix = m4.multiply(m4.inverse(m4.orient(cam_pos, misc.add_vec(cam_pos, cam_dir))), matrix);
+    matrix = m4.multiply(m4.inverse(m4.orient(calc_cam_pos(), [0, 0, 0])), matrix);
     matrix = m4.multiply(perspective, matrix);
     gl.uniformMatrix4fv(u_matrix_loc, false, m4.gl_format(matrix));
 }
@@ -120,5 +129,15 @@ function toclipspace(x, y) {
     ];
 }
 
-canvas.addEventListener('mousemove', e => {mouse_charge = toclipspace(e.x, e.y)});
+canvas.addEventListener('mousemove', function(e) {
+    let sensitivity = 1000;
+    // if middle click held down, so panning
+    if (e.buttons == 2) {
+        cam_yaw -= e.movementX / sensitivity;
+        cam_pitch -= e.movementY / sensitivity;
+    } else {
+        // move mouse charge
+        mouse_charge = toclipspace(e.x, e.y);
+    }
+});
 canvas.addEventListener('click', e => {charges.push(toclipspace(e.x, e.y))});

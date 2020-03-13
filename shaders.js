@@ -13,8 +13,8 @@ let vertex_shader_src = `
 //identifier prefixes like a_ and u_ signify types
 
 #define MAX_CHARGES 50
-#define E_SCALING_FACTOR 0.005
-#define E_MAX_LENGTH 0.8
+#define V_SCALING_FACTOR 0.04
+#define V_MAX 0.8
 #define OSCILL 15.0
 #define PI 3.14159265358979
 
@@ -29,29 +29,29 @@ uniform vec3 u_charges[MAX_CHARGES]; // the z is a 0 or 1 indicating if in use o
 
 varying vec4 color;
 
-vec2 E_influence(int charge_index) {
-    // returns the electric field from the charge at index charge_index
+float V_influence(int charge_index) {
+    // returns the electric potential from the charge at index charge_index
     // in the charges global array
     vec2 r = u_charges[charge_index].xy - a_position.xy;
-    vec2 E = r / pow(length(r), 3.0) * E_SCALING_FACTOR;
-    return E;
+    float V = 1.0 / length(r) * V_SCALING_FACTOR;
+    return V;
 }
 
 void main(){
-    vec2 E = vec2(0, 0);
+    float V = 0.0;
 
     for (int i = 0; i < MAX_CHARGES; i++){
         // skip charges that are not being used
         if (u_charges[i].z == 0.0) continue;
 
-        E += E_influence(i);
+        V += V_influence(i);
     }
 
-    if (length(E) > E_MAX_LENGTH) E *= E_MAX_LENGTH / length(E);
+    if (V > V_MAX) V = V_MAX;
 
-    gl_Position = u_matrix * vec4(a_position.x, length(E), a_position.y, 1);
+    gl_Position = u_matrix * vec4(a_position.x, V, a_position.y, 1);
 
-    float v = length(E);
+    float v = V;
     color = vec4(
         sin(v * OSCILL) * (0.2 + v),
         sin(v * OSCILL + PI * 2.0 / 3.0) * (0.2 + v),
