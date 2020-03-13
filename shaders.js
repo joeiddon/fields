@@ -78,7 +78,7 @@ void main(){
         sin(v * OSCILL + PI * 4.0 / 3.0),
         1
     );*/
-    color = vec4(1, 0.7-v, 0, 1);
+    color = vec4(1, 0.7-0.6*v, 0, 1);
     color.xyz *= (0.2 + 0.8 * intensity);
 }
 `;
