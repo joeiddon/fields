@@ -38,7 +38,7 @@ float compute_V() {
         // skip charges that are not being used
         if (u_charges[i].z == 0.0) continue;
         vec2 r = u_charges[i].xy - a_position.xy;
-        float Vi = 1.0 / length(r) * V_SCALING_FACTOR;
+        float Vi = - 1.0 / length(r) * V_SCALING_FACTOR;
         V += Vi;
     }
     // if (V > V_MAX) V = V_MAX;
@@ -70,6 +70,7 @@ void main(){
     n = (u_view_matrix * vec4(n, 1)).xyz;
     float intensity = dot(reflected_ray, n);
     if (intensity < 0.0) intensity = 0.0;
+    //intensity = 0.8;
     //color = vec4(1, 0, 0, 1);
     float v = V;
     color = vec4(
@@ -80,6 +81,8 @@ void main(){
     );
     //color = vec4(1, 0.8-0.5*v, 0, 1);
     color.xyz *= (0.6 + 0.4 * intensity);
+    //add bands of color for contours?
+    //if (float(int(V/10.0)) - V/10.0 < 0.05) color.xyz = vec3(1.0, 0, 0);
 }
 `;
 
