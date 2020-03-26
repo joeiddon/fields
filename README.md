@@ -11,7 +11,7 @@ maths and physics, this repository contains some experiments with simulating
 different types of fields.
 
 - [A 2D Electric Vector Field](https://joeiddon.github.io/fields/electric_vector)
-- [A 2D Electric Potential Scalar Field, Visualised in 3D](https://joeiddon.github.io/fields/)
+- [A 2D Electric Potential Scalar Field, Visualised in 3D](https://joeiddon.github.io/fields/electric_potential)
 
 ### Controls
 
