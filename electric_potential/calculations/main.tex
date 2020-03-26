@@ -24,11 +24,11 @@ The electric potential field is three dimensional and scalar. A two dimensional 
 
 The surface can be parametrised by a bivariate function $z = f(x,y)$. This function, $f(x,y)$, must calculate the electric potential at the point $(x,y)$ given the locations and charge of all known charges.
 
-The electric potential at position $(x,y)$ due to charge $i$ is given by
+The electric potential at position $\vec{r}=(x,y)$ due to charge $i$ is given by
 
-$$V = -k\frac{q_i}{|\vec{r_i}|} = -k\frac{q_i}{\sqrt{(x-x_i)^2 + (y-y_i)^2}}$$
+$$V = -k\frac{q_i}{|\vec{r}-\vec{r_i}|} = -k\frac{q_i}{\sqrt{(x-x_i)^2 + (y-y_i)^2}}$$
 
-where the charge has location $(x_i, y_i)$, displacement $\vec{r_i} =  (x-x_i,y-y_i)$ from the $(x,y)$ position, and charge $q_i$.
+where the charge has location $\vec{r_i} = (x_i, y_i)$, and charge $q_i$.
 
 Due to the principle of super position, the total electric potential can be calculated by summing over all charges.
 
@@ -111,12 +111,12 @@ This gives that
 =&-k\sum_{i}q_i\frac{\partial}{\partial x}((x-x_i)^2 + (y-y_i)^2)^{-\frac{1}{2}} \\
 =&-k\sum_{i}q_i \cdot -\frac{1}{2} ((x-x_i)^2 + (y-y_i)^2)^{-\frac{3}{2}} \cdot 2(x-x_i) \\
 =&k\sum_{i}\frac{q_i(x-x_i)}{(\sqrt{(x-x_i)^2 + (y-y_i)^2})^3} \\
-=&k\sum_{i}\frac{q_i(x-x_i)}{|\vec{r_i}|^3}
+=&k\sum_{i}\frac{q_i(x-x_i)}{|\vec{r}-\vec{r_i}|^3}
 \end{align*}
 
 Similarly,
 
-$$\frac{\partial f}{\partial y} = k\sum_{i}\frac{q_i(y-y_i)}{|\vec{r_i}|^3}$$
+$$\frac{\partial f}{\partial y} = k\sum_{i}\frac{q_i(y-y_i)}{|\vec{r}-\vec{r_i}|^3}$$
 
 Implementing this calculation in the WebGL Shader Language (GLSL), gives the much nicer result found in Figure~\ref{fig:shading}.
 
