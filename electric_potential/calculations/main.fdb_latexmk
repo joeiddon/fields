@@ -1,8 +1,8 @@
 # Fdb version 3
-["pdflatex"] 1585235825 "/home/joe/_/fields/electric_potential/calculations/main.tex" "/home/joe/_/fields/electric_potential/calculations/main.pdf" "main" 1585235826
+["pdflatex"] 1585236252 "/home/joe/_/fields/electric_potential/calculations/main.tex" "/home/joe/_/fields/electric_potential/calculations/main.pdf" "main" 1585236253
   "/home/joe/.texlive2019/texmf-var/web2c/pdftex/pdflatex.fmt" 1575235766 797358 813abdaef3ae545c5d3e479cd08ec962 ""
-  "/home/joe/_/fields/electric_potential/calculations/main.aux" 1585235826 2087 cb4471e9e1429377606a64ae3009ee65 ""
-  "/home/joe/_/fields/electric_potential/calculations/main.tex" 1585235825 7474 b81478f6a176f5d9d9f2294d27cd9712 ""
+  "/home/joe/_/fields/electric_potential/calculations/main.aux" 1585236253 2087 cb4471e9e1429377606a64ae3009ee65 ""
+  "/home/joe/_/fields/electric_potential/calculations/main.tex" 1585236252 7502 7a1f53e2dc0767ff1fbac5752c0018c4 ""
   "/usr/share/texlive/texmf-dist/fonts/map/pdftex/updmap/pdftex.map" 1571529271 4705165 89f805375525bb3eb1f534beca7104e4 ""
   "/usr/share/texlive/texmf-dist/fonts/tfm/public/amsfonts/cmextra/cmex7.tfm" 1246382020 1004 54797486969f23fa377b128694d548df ""
   "/usr/share/texlive/texmf-dist/fonts/tfm/public/amsfonts/cmextra/cmex8.tfm" 1246382020 988 bdf658c3bfc2d96d3c8b02cfc1c94c20 ""
@@ -78,15 +78,15 @@
   "/usr/share/texlive/texmf-dist/tex/latex/url/url.sty" 1388531844 12796 8edb7d69a20b857904dd0ea757c14ec9 ""
   "/usr/share/texlive/texmf-dist/web2c/texmf.cnf" 1580927610 35594 9aef19174c178978f61d14961262af5d ""
   "diagram.eps" 1585163449 150584 10c40e62ce19afa504a2a95a273f0030 ""
-  "main.aux" 1585235826 2087 cb4471e9e1429377606a64ae3009ee65 "pdflatex"
-  "main.out" 1585235825 0 d41d8cd98f00b204e9800998ecf8427e "pdflatex"
-  "main.tex" 1585235825 7474 b81478f6a176f5d9d9f2294d27cd9712 ""
+  "main.aux" 1585236253 2087 cb4471e9e1429377606a64ae3009ee65 "pdflatex"
+  "main.out" 1585236252 0 d41d8cd98f00b204e9800998ecf8427e "pdflatex"
+  "main.tex" 1585236252 7502 7a1f53e2dc0767ff1fbac5752c0018c4 ""
   "no_shading.png" 1584804631 322565 9576408c95bf4dcbc75aecc2b35eff9b ""
   "shading.png" 1584806089 373732 1b04d7485ad5251ac96c9f7f29c6ebca ""
   (generated)
-  "main.aux"
-  "main.log"
   "main.out"
   "main.pdf"
-  "/home/joe/_/fields/electric_potential/calculations/main.pdf"
   "/home/joe/_/fields/electric_potential/calculations/main.log"
+  "main.aux"
+  "/home/joe/_/fields/electric_potential/calculations/main.pdf"
+  "main.log"

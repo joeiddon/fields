@@ -38,7 +38,7 @@ float compute_V() {
         // skip charges that are not being used
         if (u_charges[i].z == 0.0) continue;
         vec2 r = u_charges[i].xy - a_position.xy;
-        float Vi = - 1.0 / length(r) * V_SCALING_FACTOR;
+        float Vi = 1.0 / length(r) * V_SCALING_FACTOR;
         V += Vi;
     }
     // if (V > V_MAX) V = V_MAX;
