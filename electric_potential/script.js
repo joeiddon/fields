@@ -102,7 +102,7 @@ let space_pitch = 0;
 let light = [-0.5, -1.5, 0.8]; // normalised in vertex shader
 
 let charges = [];
-let mouse_charge = [0, 0];
+let mouse_charge = {position: [0, 0], magnitude: -0.5};
 
 function set_u_matrix(){
     // matrices in right-to-left order (i.e. in order of application)
@@ -120,9 +120,9 @@ function set_u_matrix(){
 function update() {
     set_u_matrix();
     gl.uniform3fv(u_light_loc, new Float32Array(light));
-    let u_charges_data = [...mouse_charge, 1];
+    let u_charges_data = [...mouse_charge.position, mouse_charge.magnitude];
     for (let i = 0; i < MAX_CHARGES - 1; i ++){ // -1 because one taken up by mouse
-        if (i < charges.length) u_charges_data.push(...charges[i], 1);
+        if (i < charges.length) u_charges_data.push(...charges[i].position, charges[i].magnitude);
         else u_charges_data.push(0, 0, 0);
     }
     gl.uniform3fv(u_charges_loc, new Float32Array(u_charges_data));
@@ -142,13 +142,15 @@ function toclipspace(x, y) {
 
 canvas.addEventListener('mousemove', function(e) {
     let sensitivity = 400;
-    // if middle click held down, so panning
+    // if right click held down, so panning
     if (e.buttons & 2) {
         space_yaw -= e.movementX / sensitivity;
         space_pitch -= e.movementY / sensitivity;
     } else {
         // move mouse charge
-        mouse_charge = toclipspace(e.x, e.y);
+        mouse_charge.position = toclipspace(e.x, e.y);
     }
 });
-canvas.addEventListener('click', e => {charges.push(toclipspace(e.x, e.y))});
+
+canvas.addEventListener('wheel', e => {mouse_charge.magnitude += e.deltaY / 200});
+canvas.addEventListener('click', e => {charges.push({position: [...mouse_charge.position], magnitude: mouse_charge.magnitude})}); // unpacked so creates new object
