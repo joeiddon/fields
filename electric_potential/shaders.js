@@ -70,7 +70,7 @@ void main(){
     n = (u_view_matrix * vec4(n, 1)).xyz;
     float intensity = dot(reflected_ray, n);
     if (intensity < 0.0) intensity = 0.0;
-    intensity = 0.8;
+    //intensity = 0.8;
     //color = vec4(1, 0, 0, 1);
     float v = V;
     color = vec4(
