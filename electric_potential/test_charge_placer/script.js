@@ -145,7 +145,7 @@ function calculate_perspective_matrix() {
 calculate_perspective_matrix();
 window.addEventListener('resize', calculate_perspective_matrix);
 
-let cam = [0, 1.2, -2]; // issues when cam is up x-axis with panning of space_pitch !!
+let cam = [0, 1.2, -3]; // issues when cam is up x-axis with panning of space_pitch !!
 
 // space is the grid
 let space_yaw = 0;
@@ -177,17 +177,36 @@ let test_charge = {
     velocity: [0, 0]
 }
 
+let paused = false;
+// press `p` key to pause
+document.addEventListener('keydown', e=>{if (e.key == 'p') paused = !paused;});
+
 function update_test_charge() {
+    if (paused) return;
     let E = [0, 0];
+    let k = 0.0005;
     for (let charge of charges) {
         let d = ((charge.position[0]-test_charge.position[0])**2 + (charge.position[1]-test_charge.position[1])**2)**0.5;
         if (d > 0.1) { // dont do anything if too close (note: if remove this, watch out for divide by zero!)
-            E[0] += 0.02 * charge.magnitude * (charge.position[0] - test_charge.position[0]) / d ** 2;
-            E[1] += 0.02 * charge.magnitude * (charge.position[1] - test_charge.position[1])  / d ** 2;
+            E[0] += k * charge.magnitude * (charge.position[0] - test_charge.position[0]) / d ** 2;
+            E[1] += k * charge.magnitude * (charge.position[1] - test_charge.position[1])  / d ** 2;
         }
     }
-    test_charge.position[0] += E[0];
-    test_charge.position[1] += E[1];
+    let a = [
+        test_charge.magnitude * E[0],
+        test_charge.magnitude * E[1]
+    ];
+    // NOT INCLUDING TIME, t, IN THESE EQUATIONS, for now
+    // using s = ut + 1/2 at ^ 2
+    test_charge.position[0] += test_charge.velocity[0] + 0.5 * a[0];
+    test_charge.position[1] += test_charge.velocity[1] + 0.5 * a[1];
+    if (test_charge.position[0] > 1) {test_charge.position[0] = 1; test_charge.velocity = [0,0];}
+    if (test_charge.position[0] < -1) {test_charge.position[0] = -1; test_charge.velocity = [0,0];}
+    if (test_charge.position[1] > 1) {test_charge.position[1] = 1; test_charge.velocity = [0,0];}
+    if (test_charge.position[1] < -1) {test_charge.position[1] = -1; test_charge.velocity = [0,0];}
+    // using v = u + at
+    test_charge.velocity[0] += a[0];
+    test_charge.velocity[1] += a[1];
 }
 
 function update() {
