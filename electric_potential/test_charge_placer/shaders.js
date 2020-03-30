@@ -80,7 +80,7 @@ void main(){
         1
     );
     //color = vec4(1, 0.8-0.5*v, 0, 1);
-    color.xyz *= (0.8 + 0.2 * intensity);
+    color.xyz *= (0.6 + 0.4 * intensity);
     //add bands of color for contours?
     //if (float(int(V/10.0)) - V/10.0 < 0.05) color.xyz = vec3(1.0, 0, 0);
 }
@@ -107,8 +107,8 @@ void main(){
     vec3 n = normalize((u_view_matrix * vec4(a_normal, 1)).xyz);
     vec3 reflected_ray = -normalize(u_light);
     float intensity = dot(reflected_ray, n);
-    color = vec4(1, 0.5, 0, 1);
-    color.xyz *= (0.5 + 0.7 * intensity);
+    color = vec4(1, 0.2, 0.8, 1);
+    color.xyz *= (0.5 + 0.5 * intensity);
 }
 `
 

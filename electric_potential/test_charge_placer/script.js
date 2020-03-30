@@ -80,8 +80,8 @@ gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(positions), gl.STATIC_DRAW);
 let ball = [];
 let normals = [];
 
-let angle_step = 2 * Math.PI / 16;
-let radius = 0.1;
+let angle_step = 2 * Math.PI / 32;
+let radius = 0.05;
 
 function get_position_on_ball(yaw, pitch) {
     return [
@@ -145,17 +145,18 @@ function calculate_perspective_matrix() {
 calculate_perspective_matrix();
 window.addEventListener('resize', calculate_perspective_matrix);
 
-//let cam = [0, 1.5, -2]; // issues when cam is up x-axis with panning of space_pitch !!
-let cam = [0, 1.5, -2];
+let cam = [0, 1.2, -2]; // issues when cam is up x-axis with panning of space_pitch !!
 
 // space is the grid
 let space_yaw = 0;
 let space_pitch = 0;
 
-let light = [-0.5, -1.5, 0.8]; // normalised in vertex shader
+let light = [-0.1, -1.5, 0.8]; // normalised in vertex shader
 
-let charges = [];
-let mouse_charge = {position: [0, 0], magnitude: -0.5};
+// the "mouse charge" is always the first charge
+let charges = [
+    {position: [0, 0], magnitude: -0.5}
+];
 
 let matrices = {};
 
@@ -170,6 +171,25 @@ function calculate_matrices(){
     matrices.world = m4.multiply(m_perspective, matrices.view);
 }
 
+let test_charge = {
+    magnitude: 0.5,
+    position: [0, 0],
+    velocity: [0, 0]
+}
+
+function update_test_charge() {
+    let E = [0, 0];
+    for (let charge of charges) {
+        let d = ((charge.position[0]-test_charge.position[0])**2 + (charge.position[1]-test_charge.position[1])**2)**0.5;
+        if (d > 0.1) { // dont do anything if too close (note: if remove this, watch out for divide by zero!)
+            E[0] += 0.02 * charge.magnitude * (charge.position[0] - test_charge.position[0]) / d ** 2;
+            E[1] += 0.02 * charge.magnitude * (charge.position[1] - test_charge.position[1])  / d ** 2;
+        }
+    }
+    test_charge.position[0] += E[0];
+    test_charge.position[1] += E[1];
+}
+
 function update() {
     calculate_matrices();
 
@@ -180,8 +200,8 @@ function update() {
     gl.uniformMatrix4fv(u_view_matrix_loc, false, m4.gl_format(matrices.rot));
     gl.uniformMatrix4fv(u_world_matrix_loc, false, m4.gl_format(matrices.world));
     gl.uniform3fv(u_light_loc, new Float32Array(light));
-    let u_charges_data = [...mouse_charge.position, mouse_charge.magnitude];
-    for (let i = 0; i < MAX_CHARGES - 1; i ++){ // -1 because one taken up by mouse
+    let u_charges_data = [];
+    for (let i = 0; i < MAX_CHARGES; i ++){ // -1 because one taken up by mouse
         if (i < charges.length) u_charges_data.push(...charges[i].position, charges[i].magnitude);
         else u_charges_data.push(0, 0, 0);
     }
@@ -191,8 +211,9 @@ function update() {
     gl.vertexAttribPointer(a_position_loc, 2, gl.FLOAT, false, 0, 0);
     gl.drawArrays(gl.TRIANGLES, 0, positions.length / 2);
 
+    update_test_charge();
     gl.useProgram(charge_program);
-    gl.uniform3fv(u_charge_ball_translate_loc, new Float32Array([1, 0.5, 0]));
+    gl.uniform3fv(u_charge_ball_translate_loc, new Float32Array([test_charge.position[0], 0.7, test_charge.position[1]]));
     gl.uniformMatrix4fv(u_charge_view_matrix_loc, false, m4.gl_format(matrices.rot));
     gl.uniformMatrix4fv(u_charge_world_matrix_loc, false, m4.gl_format(matrices.world));
     gl.uniform3fv(u_charge_light_loc, new Float32Array(light));
@@ -222,9 +243,9 @@ canvas.addEventListener('mousemove', function(e) {
         space_pitch -= e.movementY / sensitivity;
     } else {
         // move mouse charge
-        mouse_charge.position = toclipspace(e.x, e.y);
+        charges[0].position = toclipspace(e.x, e.y);
     }
 });
 
-canvas.addEventListener('wheel', e => {mouse_charge.magnitude += e.deltaY / 200});
-canvas.addEventListener('click', e => {charges.push({position: [...mouse_charge.position], magnitude: mouse_charge.magnitude})}); // unpacked so creates new object
+canvas.addEventListener('wheel', e => {charges[0].magnitude += e.deltaY / 200});
+canvas.addEventListener('click', e => {charges.push({position: [...charges[0].position], magnitude: charges[0].magnitude})}); // unpacked so creates new object
