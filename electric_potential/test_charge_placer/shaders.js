@@ -96,15 +96,19 @@ uniform mat4 u_world_matrix;
 
 uniform vec3 u_light;
 
+uniform vec3 u_ball_translate;
+
+// could conisder passing normal as varying then doing dot prod in frag shader
 varying vec4 color; //defaults to (0, 0, 0, 1);
 
 void main(){
-    gl_Position = u_world_matrix * vec4(a_position, 1);
-    vec3 n = normalize(u_view_matrix * vec4(a_normal, 1)).xyz;
+    vec3 p = a_position + u_ball_translate;
+    gl_Position = u_world_matrix * vec4(p, 1);
+    vec3 n = normalize((u_view_matrix * vec4(a_normal, 1)).xyz);
     vec3 reflected_ray = -normalize(u_light);
     float intensity = dot(reflected_ray, n);
     color = vec4(1, 0.5, 0, 1);
-    color.xyz *= (0.2 + 0.8 * intensity);
+    color.xyz *= (0.5 + 0.7 * intensity);
 }
 `
 

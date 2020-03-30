@@ -45,6 +45,10 @@ let a_charge_normal_loc = gl.getAttribLocation(charge_program, 'a_normal'); // s
 let u_charge_world_matrix_loc = gl.getUniformLocation(charge_program, 'u_world_matrix');
 let u_charge_view_matrix_loc = gl.getUniformLocation(charge_program, 'u_view_matrix');
 let u_charge_light_loc = gl.getUniformLocation(charge_program, 'u_light');
+let u_charge_ball_translate_loc = gl.getUniformLocation(charge_program, 'u_ball_translate');
+
+// if any locations are -1, that means they are not being used in the shaders,
+// so compiler got rid of them
 
 gl.enableVertexAttribArray(a_position_loc);
 gl.enableVertexAttribArray(a_charge_position_loc);
@@ -76,8 +80,8 @@ gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(positions), gl.STATIC_DRAW);
 let ball = [];
 let normals = [];
 
-let angle_step = 2 * Math.PI / 10;
-let radius = 3;
+let angle_step = 2 * Math.PI / 16;
+let radius = 0.1;
 
 function get_position_on_ball(yaw, pitch) {
     return [
@@ -90,7 +94,6 @@ function get_position_on_ball(yaw, pitch) {
 
 for (let yaw = 0; yaw < Math.PI * 2; yaw += angle_step) {
     for (let pitch = -Math.PI / 2; pitch < Math.PI / 2; pitch += angle_step) {
-        console.log(yaw, pitch)
         ball.push(...get_position_on_ball(yaw, pitch));
         ball.push(...get_position_on_ball(yaw + angle_step, pitch));
         ball.push(...get_position_on_ball(yaw + angle_step, pitch + angle_step));
@@ -143,7 +146,7 @@ calculate_perspective_matrix();
 window.addEventListener('resize', calculate_perspective_matrix);
 
 //let cam = [0, 1.5, -2]; // issues when cam is up x-axis with panning of space_pitch !!
-let cam = [0, 3, -9];
+let cam = [0, 1.5, -2];
 
 // space is the grid
 let space_yaw = 0;
@@ -189,6 +192,7 @@ function update() {
     gl.drawArrays(gl.TRIANGLES, 0, positions.length / 2);
 
     gl.useProgram(charge_program);
+    gl.uniform3fv(u_charge_ball_translate_loc, new Float32Array([1, 0.5, 0]));
     gl.uniformMatrix4fv(u_charge_view_matrix_loc, false, m4.gl_format(matrices.rot));
     gl.uniformMatrix4fv(u_charge_world_matrix_loc, false, m4.gl_format(matrices.world));
     gl.uniform3fv(u_charge_light_loc, new Float32Array(light));
