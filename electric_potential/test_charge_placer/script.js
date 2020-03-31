@@ -183,14 +183,16 @@ document.addEventListener('keydown', e=>{if (e.key == 'p') paused = !paused;});
 
 function update_test_charge() {
     if (paused) return;
+    /// !!!! // separate computation of electric field, E, to separate function !!!
     let E = [0, 0];
-    let k = 0.0005;
+    let k = 0.00005;
     for (let charge of charges) {
         let d = ((charge.position[0]-test_charge.position[0])**2 + (charge.position[1]-test_charge.position[1])**2)**0.5;
-        if (d > 0.1) { // dont do anything if too close (note: if remove this, watch out for divide by zero!)
+        if (d == 0) d = 0.001;
+        //if (d > 0.1) { // dont do anything if too close (note: if remove this, watch out for divide by zero!)
             E[0] += k * charge.magnitude * (charge.position[0] - test_charge.position[0]) / d ** 2;
             E[1] += k * charge.magnitude * (charge.position[1] - test_charge.position[1])  / d ** 2;
-        }
+        //}
     }
     let a = [
         test_charge.magnitude * E[0],
@@ -207,6 +209,17 @@ function update_test_charge() {
     // using v = u + at
     test_charge.velocity[0] += a[0];
     test_charge.velocity[1] += a[1];
+}
+
+function compute_V(x, y) {
+    let V_SCALING_FACTOR = 0.04; // this should be extracted from the shader source code maybe!
+    let V = 0;
+    for (let charge of charges) {
+        let d = ((x - charge.position[0]) ** 2 + (y - charge.position[1]) ** 2) ** 0.5;
+        if (d == 0) d = 0.00001;
+        V += -1.0 * V_SCALING_FACTOR * charge.magnitude / d;
+    }
+    return V + radius;
 }
 
 function update() {
@@ -232,7 +245,7 @@ function update() {
 
     update_test_charge();
     gl.useProgram(charge_program);
-    gl.uniform3fv(u_charge_ball_translate_loc, new Float32Array([test_charge.position[0], 0.7, test_charge.position[1]]));
+    gl.uniform3fv(u_charge_ball_translate_loc, new Float32Array([test_charge.position[0], compute_V(...test_charge.position), test_charge.position[1]]));
     gl.uniformMatrix4fv(u_charge_view_matrix_loc, false, m4.gl_format(matrices.rot));
     gl.uniformMatrix4fv(u_charge_world_matrix_loc, false, m4.gl_format(matrices.world));
     gl.uniform3fv(u_charge_light_loc, new Float32Array(light));
