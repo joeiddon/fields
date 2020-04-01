@@ -13,6 +13,13 @@
  * https://webglfundamentals.org/webgl/lessons/webgl-fundamentals.html
  */
 
+/*
+ * TODO:
+ * add contour lines / better color scheme
+ * write a library to deal with vectors
+ * code to map mouse pointer to surface properly
+ */
+
 // ensure this matches the vertex shader #define
 const MAX_CHARGES = 50;
 
@@ -178,8 +185,12 @@ let test_charge = {
 }
 
 let paused = false;
-// press `p` key to pause
-document.addEventListener('keydown', e=>{if (e.key == 'p') paused = !paused;});
+let sticked = false;
+// press `p` key to pause, 's' to stick mouse charge
+document.addEventListener('keydown', e=>{
+    if (e.key == 'p') paused = !paused;
+    if (e.key == 's') sticked = !sticked;
+});
 
 function update_test_charge() {
     if (paused) return;
@@ -219,10 +230,39 @@ function compute_V(x, y) {
         if (d == 0) d = 0.00001;
         V += -1.0 * V_SCALING_FACTOR * charge.magnitude / d;
     }
-    return V + radius;
+    return V;
 }
 
-function update() {
+function compute_normal(x, y) {
+    let dfdx = 0;
+    let dfdy = 0;
+    for (let charge of charges){
+        let d = ((x - charge.position[0]) ** 2 + (y - charge.position[1]) ** 2) ** 0.5;
+        if (d == 0) d = 0.0001;
+        dfdx += charge.magnitude * (x - charge.position[0]) / (d ** 3);
+        dfdy += charge.magnitude * (y - charge.position[1]) / (d ** 3);
+    }
+    let n = [-dfdx, 1, -dfdy];
+    return n.map(c => c / (n[0] ** 2 + n[1] ** 2 + n[2] ** 2) ** 0.5);
+}
+
+function calculate_test_charge_trans() {
+    let surface_position = [
+        test_charge.position[0],
+       compute_V(...test_charge.position),
+        test_charge.position[1]
+    ];
+    //surface_position = [0, 1, 0];
+    let normal_offset = compute_normal(...test_charge.position);
+    return surface_position.map((c,i) => c + normal_offset[i] * radius);
+}
+
+
+let last_time;
+let time_delta;
+function update(time) {
+    time_delta = time - (last_time || time);
+    last_time = time;
     calculate_matrices();
 
     gl.clear(gl.COLOR_BUFFER_BIT);
@@ -245,7 +285,7 @@ function update() {
 
     update_test_charge();
     gl.useProgram(charge_program);
-    gl.uniform3fv(u_charge_ball_translate_loc, new Float32Array([test_charge.position[0], compute_V(...test_charge.position), test_charge.position[1]]));
+    gl.uniform3fv(u_charge_ball_translate_loc, new Float32Array(calculate_test_charge_trans()));
     gl.uniformMatrix4fv(u_charge_view_matrix_loc, false, m4.gl_format(matrices.rot));
     gl.uniformMatrix4fv(u_charge_world_matrix_loc, false, m4.gl_format(matrices.world));
     gl.uniform3fv(u_charge_light_loc, new Float32Array(light));
@@ -256,6 +296,7 @@ function update() {
     gl.drawArrays(gl.TRIANGLES, 0, ball.length / 3);
 
     requestAnimationFrame(update);
+    update_info();
 }
 
 update();
@@ -274,6 +315,7 @@ canvas.addEventListener('mousemove', function(e) {
         space_yaw -= e.movementX / sensitivity;
         space_pitch -= e.movementY / sensitivity;
     } else {
+        if (!sticked)
         // move mouse charge
         charges[0].position = toclipspace(e.x, e.y);
     }
@@ -281,3 +323,18 @@ canvas.addEventListener('mousemove', function(e) {
 
 canvas.addEventListener('wheel', e => {charges[0].magnitude += e.deltaY / 200});
 canvas.addEventListener('click', e => {charges.push({position: [...charges[0].position], magnitude: charges[0].magnitude})}); // unpacked so creates new object
+
+function update_info(){
+    let join = (character) => (a,b) => a + character + b;
+    document.getElementById('info').innerText = [
+        ['fps', parseInt(1 / time_delta * 1e3)],
+        ['test charge x', test_charge.position[0].toFixed(2)], // convert this to a coordinate!
+        ['test charge y', test_charge.position[1].toFixed(2)],
+        ['potential (z)', compute_V(...test_charge.position).toFixed(2)],
+        ['test charge vx', (test_charge.velocity[0] * 100).toFixed(2)],
+        ['test charge vy', (test_charge.velocity[1] * 100).toFixed(2)],
+        ['normal', compute_normal(...test_charge.position).map(c=>c.toFixed(3))],
+        ['mouse charge', charges[0].position.map(c=>c.toFixed(3))]
+
+    ].map(a => a.reduce(join(' = '))).reduce(join('\n'));
+}
