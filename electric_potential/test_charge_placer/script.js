@@ -88,7 +88,7 @@ let ball = [];
 let normals = [];
 
 let angle_step = 2 * Math.PI / 32;
-let radius = 0.01;
+let radius = 0.02;
 
 function get_position_on_ball(yaw, pitch) {
     return [
@@ -251,7 +251,7 @@ function compute_normal(x, y) {
 function calculate_test_charge_trans() {
     let surface_position = [
         test_charge.position[0],
-       compute_V(...test_charge.position),
+        compute_V(...test_charge.position) + radius,
         test_charge.position[1]
     ];
     return surface_position;
