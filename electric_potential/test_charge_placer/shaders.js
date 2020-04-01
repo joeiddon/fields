@@ -52,8 +52,8 @@ vec3 compute_normal() {
         // skip charges that are not being used
         if (u_charges[i].z == 0.0) continue;
         vec2 r = u_charges[i].xy - a_position.xy;
-        dfdx += - (a_position.x - u_charges[i].x) / pow(length(r), 3.0);
-        dfdy += - (a_position.y - u_charges[i].y) / pow(length(r), 3.0);
+        dfdx += - u_charges[i].z * (a_position.x - u_charges[i].x) / pow(length(r), 3.0);
+        dfdy += - u_charges[i].z * (a_position.y - u_charges[i].y) / pow(length(r), 3.0);
     }
     vec3 n = vec3(-dfdx, 1, -dfdy);
     return n / length(n); // or use normalize(n)
