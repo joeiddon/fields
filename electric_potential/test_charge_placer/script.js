@@ -88,7 +88,7 @@ let ball = [];
 let normals = [];
 
 let angle_step = 2 * Math.PI / 32;
-let radius = 0.05;
+let radius = 0.01;
 
 function get_position_on_ball(yaw, pitch) {
     return [
@@ -233,6 +233,7 @@ function compute_V(x, y) {
     return V;
 }
 
+/* not used for making ball sit on surface as not true representation of position.
 function compute_normal(x, y) {
     let dfdx = 0;
     let dfdy = 0;
@@ -245,6 +246,7 @@ function compute_normal(x, y) {
     let n = [-dfdx, 1, -dfdy];
     return n.map(c => c / (n[0] ** 2 + n[1] ** 2 + n[2] ** 2) ** 0.5);
 }
+*/
 
 function calculate_test_charge_trans() {
     let surface_position = [
@@ -252,9 +254,13 @@ function calculate_test_charge_trans() {
        compute_V(...test_charge.position),
         test_charge.position[1]
     ];
-    //surface_position = [0, 1, 0];
+    return surface_position;
+    /*
+    surface_position = [0, 1, 0];
     let normal_offset = compute_normal(...test_charge.position);
+    normal_offset = [0, 1, 0];
     return surface_position.map((c,i) => c + normal_offset[i] * radius);
+    */
 }
 
 
@@ -326,14 +332,12 @@ canvas.addEventListener('click', e => {charges.push({position: [...charges[0].po
 
 function update_info(){
     let join = (character) => (a,b) => a + character + b;
+    let format = (array, prec) => array.map(x => x.toFixed(prec || 2));
     document.getElementById('info').innerText = [
         ['fps', parseInt(1 / time_delta * 1e3)],
-        ['test charge x', test_charge.position[0].toFixed(2)], // convert this to a coordinate!
-        ['test charge y', test_charge.position[1].toFixed(2)],
-        ['potential (z)', compute_V(...test_charge.position).toFixed(2)],
-        ['test charge vx', (test_charge.velocity[0] * 100).toFixed(2)],
-        ['test charge vy', (test_charge.velocity[1] * 100).toFixed(2)],
-        ['normal', compute_normal(...test_charge.position).map(c=>c.toFixed(3))],
+        ['test charge x,y', format(test_charge.position)],
+        ['test charge potential (z)', compute_V(...test_charge.position).toFixed(2)],
+        ['test charge vx,vy', format(test_charge.velocity.map(c=>c*100))],
         ['mouse charge', charges[0].position.map(c=>c.toFixed(3))]
 
     ].map(a => a.reduce(join(' = '))).reduce(join('\n'));
