@@ -43,15 +43,17 @@ let positions_buffer = gl.createBuffer();
 gl.bindBuffer(gl.ARRAY_BUFFER, positions_buffer);
 gl.vertexAttribPointer(a_position_loc, 2, gl.FLOAT, false, 0, 0);
 
-let step = parseFloat(window.location.hash.slice(1));
-if (!(step > 0)) step = 0.01; //default value for if no hash, so step is NaN
-window.onhashchange = () => window.location.reload();
+let divisions = 200;
+let step = 2 / divisions;
 
-// positions are in charge / grid coordiantes x, y in [0,1]
+// positions are in charge / grid coordiantes x, y in [-1,1]
+// using a sampling method by working up in ints, then dividing to floats
 let positions = [];
-// the 1 - step/2 is to avoid floating point comparison errors
-for (let y = -1; y < 1 - step / 2; y += step)
-    for (let x = -1; x < 1 - step / 2; x += step)
+for (let xx = 0; xx <= divisions; xx ++) {
+    for (let yy = 0; yy <= divisions; yy ++) {
+        // conver the integer xx and yy into the appropriate floting ranges
+        let x = xx / divisions * 2 - 1;
+        let y = yy / divisions * 2 - 1;
         positions.push(
                  x, y,
             x+step, y,
@@ -60,6 +62,8 @@ for (let y = -1; y < 1 - step / 2; y += step)
             x+step, y+step,
                  x, y+step
         );
+    }
+}
 
 gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(positions), gl.STATIC_DRAW);
 
