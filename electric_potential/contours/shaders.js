@@ -86,6 +86,51 @@ void main(){
 }
 `;
 
+let line_vertex_shader_src = `
+//identifier prefixes like a_ and u_ signify types
+
+#define MAX_CHARGES 50
+#define V_SCALING_FACTOR 0.04
+#define V_MAX 0.8
+#define OSCILL 3.0
+#define PI 3.14159265358979
+
+// consider using structs ?
+
+attribute vec2 a_position;
+
+uniform mat4 u_world_matrix;
+
+// would probably better to pass a uniform of the number of charges used
+uniform vec3 u_charges[MAX_CHARGES]; // the z is the magnitude of the charge
+
+varying vec4 color;
+
+float compute_V() {
+    float V = 0.0;
+    for (int i = 0; i < MAX_CHARGES; i++){
+        // skip charges that are not being used
+        if (u_charges[i].z == 0.0) continue;
+        vec2 r = u_charges[i].xy - a_position.xy;
+        float Vi = -1.0 * V_SCALING_FACTOR * u_charges[i].z / length(r);
+        V += Vi;
+    }
+    // if (V > V_MAX) V = V_MAX;
+    return V;
+}
+
+void main(){
+    // NO NEED TO COMPUTE POTENTIAL AS PLOTTING AT A FIXED POTETNTIAL - PASS IN
+    // AS A UNIFORM
+    float V = compute_V();
+
+    vec3 vertex = vec3(a_position.x, V, a_position.y);
+    vertex.y += 0.001;
+    gl_Position = u_world_matrix * vec4(vertex, 1);
+    color = vec4(1, 1, 1, 1);
+}
+`;
+
 let fragment_shader_src = `
 precision mediump float;
 
