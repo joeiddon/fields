@@ -122,7 +122,7 @@ float compute_V() {
 void main(){
     // NO NEED TO COMPUTE POTENTIAL AS PLOTTING AT A FIXED POTETNTIAL - PASS IN
     // AS A UNIFORM
-    float V = compute_V();
+    float V = 0.5; //compute_V();
 
     vec3 vertex = vec3(a_position.x, V, a_position.y);
     vertex.y += 0.001;

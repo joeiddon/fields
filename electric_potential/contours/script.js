@@ -168,14 +168,16 @@ function gen_potential_at(voltage, x, y) {
     //let e = 0.0001; // approximate gradient delta
     let MAX_ITERATIONS = 2000; // stops if not back to within half a step of the start coordinate
 
-    let tolerance = 1e-5;
+    let tolerance = 1e-4;
     let newton_raphson_x = function() {
         let iterations = 0;
         while (Math.abs(f(x,y) - c) > tolerance && ++iterations < MAX_ITERATIONS) {
             if (gx(x,y) == 0) return;
             x = x - (f(x, y) - c) / gx(x, y);
         }
-        if (iterations == MAX_ITERATIONS) console.warn('infinite newton raphson caught');
+        if (iterations == MAX_ITERATIONS) {
+            //console.warn('infinite newton raphson caught');
+        }
     }
     let newton_raphson_y = function() {
         let iterations = 0;
@@ -183,7 +185,9 @@ function gen_potential_at(voltage, x, y) {
             if (gy(x,y) == 0) return;
             y = y - (f(x, y) - c) / gy(x, y);
         }
-        if (iterations == MAX_ITERATIONS) console.warn('infinite newton raphson caught');
+        if (iterations == MAX_ITERATIONS) {
+            //console.warn('infinite newton raphson caught');
+        }
     }
 
     // ensure start on the curve
@@ -202,7 +206,7 @@ function gen_potential_at(voltage, x, y) {
         let dx = gx(x, y);
         let dy = gy(x, y);
         if (dx == 0 && dy == 0) {
-            console.warn('potential = ', voltage, 'V: cant step as both partial derivates are zero');
+            //console.warn('potential = ', voltage, 'V: cant step as both partial derivates are zero');
             return false;
         } else if (Math.abs(dy) > Math.abs(dx)){
             //console.log('doing an x step');
@@ -222,7 +226,7 @@ function gen_potential_at(voltage, x, y) {
     }
 
     if (iteration == MAX_ITERATIONS) {
-        console.warn('max iterations, did not connect to start');
+        //console.warn('max iterations, did not connect to start');
     } else {
         //add final little link to start
         points.push(points[0]);
@@ -232,6 +236,12 @@ function gen_potential_at(voltage, x, y) {
 }
 
 function update() {
+    let start = performance.now();
+    let log_time = s => {
+        console.log('TIME FOR', s, '=', performance.now() - start);
+        start = performance.now();
+    };
+
     calculate_matrices();
 
     gl.clear(gl.COLOR_BUFFER_BIT);
@@ -250,6 +260,7 @@ function update() {
     gl.bindBuffer(gl.ARRAY_BUFFER, positions_buffer);
     gl.vertexAttribPointer(a_position_loc, 2, gl.FLOAT, false, 0, 0);
     gl.drawArrays(gl.TRIANGLES, 0, positions.length / 2);
+    log_time('draw field');
 
     // draw lines
     gl.useProgram(line_program);
@@ -266,6 +277,7 @@ function update() {
         gl.vertexAttribPointer(a_line_position_loc, 2, gl.FLOAT, false, 0, 0);
         gl.drawArrays(gl.LINE_LOOP, 0, line.length/2);
     };
+    log_time('draw potentials');
 
 
     requestAnimationFrame(update);
