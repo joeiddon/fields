@@ -81,8 +81,6 @@ void main(){
     );
     //color = vec4(1, 0.8-0.5*v, 0, 1);
     color.xyz *= (0.6 + 0.4 * intensity);
-    //add bands of color for contours?
-    //if (float(int(V/10.0)) - V/10.0 < 0.05) color.xyz = vec3(1.0, 0, 0);
 }
 `;
 
@@ -122,7 +120,7 @@ float compute_V() {
 void main(){
     // NO NEED TO COMPUTE POTENTIAL AS PLOTTING AT A FIXED POTETNTIAL - PASS IN
     // AS A UNIFORM
-    float V = 0.5; //compute_V();
+    float V = compute_V();
 
     vec3 vertex = vec3(a_position.x, V, a_position.y);
     vertex.y += 0.001;
@@ -137,6 +135,7 @@ precision mediump float;
 varying vec4 color;
 
 void main(){
+    //add bands of color for contours?
     gl_FragColor = color;
 }
 `;

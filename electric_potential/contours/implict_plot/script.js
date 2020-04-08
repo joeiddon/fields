@@ -166,7 +166,7 @@ function gen_potential_at(voltage, x, y) {
 
     // CONSTANTS :
     //let e = 0.0001; // approximate gradient delta
-    let MAX_ITERATIONS = 2000; // stops if not back to within half a step of the start coordinate
+    let MAX_ITERATIONS = 500; // stops if not back to within half a step of the start coordinate
 
     let tolerance = 1e-4;
     let newton_raphson_x = function() {
@@ -278,7 +278,6 @@ function update() {
         gl.drawArrays(gl.LINE_LOOP, 0, line.length/2);
     };
     log_time('draw potentials');
-
 
     requestAnimationFrame(update);
 }

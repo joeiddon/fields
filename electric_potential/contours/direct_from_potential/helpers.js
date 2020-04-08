@@ -28,7 +28,7 @@ let misc = {
         gl.linkProgram(program);
         if (!gl.getProgramParameter(program, gl.LINK_STATUS)){
             throw new Error('Error linking WebGL program.\n\n'+
-                getProgramInfoLog(program));
+                gl.getProgramInfoLog(program));
         }
         return program;
     },
