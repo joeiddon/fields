@@ -61,6 +61,16 @@ void main(){
 }
 `;
 
+let line_vertex_shader_src = `
+attribute vec3 a_position;
+uniform mat4 u_world_matrix;
+varying vec4 color;
+void main(){
+    gl_Position = u_world_matrix * vec4(a_position, 1);
+    color = vec4(1, 1, 1, 1);
+}
+`
+
 let fragment_shader_src = `
 precision mediump float;
 

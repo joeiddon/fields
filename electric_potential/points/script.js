@@ -26,7 +26,7 @@ fit_canvas_to_screen();
 window.addEventListener('resize', fit_canvas_to_screen);
 
 let program = misc.create_gl_program(vertex_shader_src, fragment_shader_src);
-gl.useProgram(program);
+let line_program = misc.create_gl_program(line_vertex_shader_src, fragment_shader_src);
 
 //set the color we want to clear to
 gl.clearColor(0, 0, 0, 1);
@@ -35,11 +35,14 @@ let a_position_loc = gl.getAttribLocation(program, 'a_position');
 let u_world_matrix_loc = gl.getUniformLocation(program, 'u_world_matrix');
 let u_charges_loc = gl.getUniformLocation(program, 'u_charges');
 
+let a_line_position_loc = gl.getAttribLocation(line_program, 'a_position');
+let u_line_world_matrix_loc = gl.getUniformLocation(line_program, 'u_world_matrix');
+
 gl.enableVertexAttribArray(a_position_loc);
+gl.enableVertexAttribArray(a_line_position_loc);
 
 let positions_buffer = gl.createBuffer();
 gl.bindBuffer(gl.ARRAY_BUFFER, positions_buffer);
-gl.vertexAttribPointer(a_position_loc, 3, gl.FLOAT, false, 0, 0);
 
 let divisions = 40;
 let step = 2 / divisions;
@@ -60,6 +63,36 @@ for (let xx = 0; xx <= divisions; xx ++) {
 }
 
 gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(positions), gl.STATIC_DRAW);
+
+let AXIS_LINE_LENGTH = 1;
+
+let axis_lines = [
+    1, 0, 0,
+    -1, 0, 0,
+    0, 1, 0,
+    0, -1, 0,
+    0, 0, 1,
+    0, 0, -1,
+
+    // adding edges of the cube too
+    -1, -1, -1, 1, -1, -1,
+    -1, -1, 1, 1, -1, 1,
+    -1, 1, -1, 1, 1, -1,
+    -1, 1, 1, 1, 1, 1,
+    1, -1, -1, 1, -1, 1,
+    -1, -1, -1, -1, -1, 1,
+    1, 1, -1, 1, 1, 1,
+    -1, 1, -1, -1, 1, 1,
+    -1, -1, -1, -1, 1, -1,
+    -1, -1, 1, -1, 1, 1,
+    1, -1, -1, 1, 1, -1,
+    1, -1, 1, 1, 1, 1,
+
+].map(x => x * AXIS_LINE_LENGTH);
+
+let axis_lines_buffer = gl.createBuffer();
+gl.bindBuffer(gl.ARRAY_BUFFER, axis_lines_buffer);
+gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(axis_lines), gl.STATIC_DRAW);
 
 function perspective_mat(fov, aspect, near, far){
     return [
@@ -92,7 +125,7 @@ let space_pitch = 0;
 let charges = [];
 let mouse_charge = {position: [0, 0, 0], magnitude: -0.5};
 
-function set_u_matrix(){
+function calc_u_matrix(){
     // matrices in right-to-left order (i.e. in order of application)
 
     // rotates space according to space_yaw and space_pitch
@@ -101,19 +134,33 @@ function set_u_matrix(){
     let m_view = m4.multiply(m4.inverse(m4.orient(cam, [0,0,0])), m_rot);
     //maps 3d to 2d
     let m_world = m4.multiply(m_perspective, m_view);
-    gl.uniformMatrix4fv(u_world_matrix_loc, false, m4.gl_format(m_world));
+    return m_world;
 }
 
 function update() {
-    set_u_matrix();
+    space_yaw += 0.0015;
+    let u_matrix = calc_u_matrix();
+
+    gl.clear(gl.COLOR_BUFFER_BIT);
+
+    gl.useProgram(program);
+    gl.uniformMatrix4fv(u_world_matrix_loc, false, m4.gl_format(u_matrix));
+    gl.bindBuffer(gl.ARRAY_BUFFER, positions_buffer);
+    gl.vertexAttribPointer(a_position_loc, 3, gl.FLOAT, false, 0, 0);
     let u_charges_data = [...mouse_charge.position, mouse_charge.magnitude];
     for (let i = 0; i < MAX_CHARGES - 1; i ++){ // -1 because one taken up by mouse
         if (i < charges.length) u_charges_data.push(...charges[i].position, charges[i].magnitude);
         else u_charges_data.push(0, 0, 0, 0);
     }
     gl.uniform4fv(u_charges_loc, new Float32Array(u_charges_data));
-    gl.clear(gl.COLOR_BUFFER_BIT);
     gl.drawArrays(gl.POINTS, 0, positions.length / 3);
+
+    gl.useProgram(line_program);
+    gl.uniformMatrix4fv(u_line_world_matrix_loc, false, m4.gl_format(u_matrix));
+    gl.bindBuffer(gl.ARRAY_BUFFER, axis_lines_buffer);
+    gl.vertexAttribPointer(a_line_position_loc, 3, gl.FLOAT, false, 0, 0);
+    gl.drawArrays(gl.LINES, 0, axis_lines.length / 3);
+
     requestAnimationFrame(update);
 }
 
