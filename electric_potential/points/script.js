@@ -44,7 +44,7 @@ gl.enableVertexAttribArray(a_line_position_loc);
 let positions_buffer = gl.createBuffer();
 gl.bindBuffer(gl.ARRAY_BUFFER, positions_buffer);
 
-let divisions = 40;
+let divisions = 90;
 let step = 2 / divisions;
 
 // positions are in charge / grid coordiantes x, y in [-1,1]

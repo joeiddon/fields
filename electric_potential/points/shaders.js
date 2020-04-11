@@ -15,8 +15,11 @@ let vertex_shader_src = `
 #define MAX_CHARGES 50
 #define V_SCALING_FACTOR 0.04
 #define V_MAX 0.8
-#define OSCILL 3.0
+#define OSCILL 20.0
 #define PI 3.14159265358979
+
+#define CONTOUR_SPACING 0.05
+#define CONTOUR_THICKNESS 0.003
 
 // consider using structs ?
 
@@ -49,14 +52,28 @@ void main(){
     gl_Position = u_world_matrix * vec4(point, 1);
     gl_PointSize = 2.0;
 
+
     float v = V;
-    //color = vec4(1, v, 0, 1);
-    color = vec4(
-        sin(v * OSCILL),
-        sin(v * OSCILL + PI * 2.0 / 3.0),
-        sin(v * OSCILL + PI * 4.0 / 3.0),
-        1
-    );
+
+    vec4 c = vec4(0, 0, 0, 1);
+    if (abs(float(int(V / CONTOUR_SPACING)) * CONTOUR_SPACING - V) < CONTOUR_THICKNESS) {
+        //c.xyz = vec3(1, 1, 1);
+        c.xyz = vec3(
+            sin(v * OSCILL),
+            sin(v * OSCILL + PI * 2.0 / 3.0),
+            sin(v * OSCILL + PI * 4.0 / 3.0)
+        );
+    }
+
+    //gl_FragColor = c;
+
+    color = c; //vec4(0, v, 0, 1);
+    //color = vec4(
+    //    sin(v * OSCILL),
+    //    sin(v * OSCILL + PI * 2.0 / 3.0),
+    //    sin(v * OSCILL + PI * 4.0 / 3.0),
+    //    1
+    //);
 
 }
 `;
