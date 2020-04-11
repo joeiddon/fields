@@ -123,7 +123,7 @@ void main(){
     float V = compute_V();
 
     vec3 vertex = vec3(a_position.x, V, a_position.y);
-    vertex.y += 0.001;
+    vertex.y += 0.01;
     gl_Position = u_world_matrix * vec4(vertex, 1);
     color = vec4(1, 1, 1, 1);
 }

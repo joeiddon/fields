@@ -33,17 +33,15 @@ gl.clearColor(0, 0, 0, 1);
 
 let a_position_loc = gl.getAttribLocation(program, 'a_position');
 let u_world_matrix_loc = gl.getUniformLocation(program, 'u_world_matrix');
-let u_view_matrix_loc = gl.getUniformLocation(program, 'u_view_matrix');
 let u_charges_loc = gl.getUniformLocation(program, 'u_charges');
-let u_light_loc = gl.getUniformLocation(program, 'u_light');
 
 gl.enableVertexAttribArray(a_position_loc);
 
 let positions_buffer = gl.createBuffer();
 gl.bindBuffer(gl.ARRAY_BUFFER, positions_buffer);
-gl.vertexAttribPointer(a_position_loc, 2, gl.FLOAT, false, 0, 0);
+gl.vertexAttribPointer(a_position_loc, 3, gl.FLOAT, false, 0, 0);
 
-let divisions = 200;
+let divisions = 40;
 let step = 2 / divisions;
 
 // positions are in charge / grid coordiantes x, y in [-1,1]
@@ -51,29 +49,17 @@ let step = 2 / divisions;
 let positions = [];
 for (let xx = 0; xx <= divisions; xx ++) {
     for (let yy = 0; yy <= divisions; yy ++) {
-        // conver the integer xx and yy into the appropriate floting ranges
-        let x = xx / divisions * 2 - 1;
-        let y = yy / divisions * 2 - 1;
-        positions.push(
-                 x, y,
-            x+step, y,
-            x+step, y+step,
-                 x, y,
-            x+step, y+step,
-                 x, y+step
-        );
+        for (let zz = 0; zz <= divisions; zz ++) {
+            // conver the integer xx and yy into the appropriate floting ranges
+            let x = xx / divisions * 2 - 1;
+            let y = yy / divisions * 2 - 1;
+            let z = zz / divisions * 2 - 1;
+            positions.push(x, y, z);
+        }
     }
 }
 
 gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(positions), gl.STATIC_DRAW);
-
-//clockwise triangles are back-facing, counter-clockwise are front-facing
-//switch two verticies to easily flip direction a triangle is facing
-//"cull face" feature means kill (don't render) back-facing triangles
-//gl.enable(gl.CULL_FACE);
-
-//enable the z-buffer (only drawn if z component LESS than that already there)
-gl.enable(gl.DEPTH_TEST);
 
 function perspective_mat(fov, aspect, near, far){
     return [
@@ -97,16 +83,14 @@ function calculate_perspective_matrix() {
 calculate_perspective_matrix();
 window.addEventListener('resize', calculate_perspective_matrix);
 
-let cam = [0, 1.5, -2]; // issues when cam is up x-axis with panning of space_pitch !!
+let cam = [0, 1.5, -3]; // issues when cam is up x-axis with panning of space_pitch !!
 
 // space is the grid
 let space_yaw = 0;
 let space_pitch = 0;
 
-let light = [-0.5, -1.5, 0.8]; // normalised in vertex shader
-
 let charges = [];
-let mouse_charge = {position: [0, 0], magnitude: -0.5};
+let mouse_charge = {position: [0, 0, 0], magnitude: -0.5};
 
 function set_u_matrix(){
     // matrices in right-to-left order (i.e. in order of application)
@@ -118,20 +102,18 @@ function set_u_matrix(){
     //maps 3d to 2d
     let m_world = m4.multiply(m_perspective, m_view);
     gl.uniformMatrix4fv(u_world_matrix_loc, false, m4.gl_format(m_world));
-    gl.uniformMatrix4fv(u_view_matrix_loc, false, m4.gl_format(m_rot));
 }
 
 function update() {
     set_u_matrix();
-    gl.uniform3fv(u_light_loc, new Float32Array(light));
     let u_charges_data = [...mouse_charge.position, mouse_charge.magnitude];
     for (let i = 0; i < MAX_CHARGES - 1; i ++){ // -1 because one taken up by mouse
         if (i < charges.length) u_charges_data.push(...charges[i].position, charges[i].magnitude);
-        else u_charges_data.push(0, 0, 0);
+        else u_charges_data.push(0, 0, 0, 0);
     }
-    gl.uniform3fv(u_charges_loc, new Float32Array(u_charges_data));
+    gl.uniform4fv(u_charges_loc, new Float32Array(u_charges_data));
     gl.clear(gl.COLOR_BUFFER_BIT);
-    gl.drawArrays(gl.TRIANGLES, 0, positions.length / 2);
+    gl.drawArrays(gl.POINTS, 0, positions.length / 3);
     requestAnimationFrame(update);
 }
 
@@ -154,7 +136,7 @@ canvas.addEventListener('mousemove', function(e) {
         if (space_pitch < -Math.PI/2) space_pitch = -Math.PI / 2;
     } else {
         // move mouse charge
-        mouse_charge.position = toclipspace(e.x, e.y);
+        mouse_charge.position = [...toclipspace(e.x, e.y), 0];
     }
 });
 
