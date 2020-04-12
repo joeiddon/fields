@@ -49,20 +49,21 @@ void main(){
     float V = compute_V();
 
     vec3 point = a_position;
-    gl_Position = u_world_matrix * vec4(point, 1);
-    gl_PointSize = 2.0;
-
 
     float v = V;
 
     vec4 c = vec4(0, 0, 0, 1);
-    if (abs(float(int(V / CONTOUR_SPACING)) * CONTOUR_SPACING - V) < CONTOUR_THICKNESS) {
+    if (abs(float(int(V / CONTOUR_SPACING)) * CONTOUR_SPACING - V) < CONTOUR_THICKNESS && abs(V) > 0.01) {
         //c.xyz = vec3(1, 1, 1);
         c.xyz = vec3(
-            sin(v * OSCILL),
-            sin(v * OSCILL + PI * 2.0 / 3.0),
-            sin(v * OSCILL + PI * 4.0 / 3.0)
+            0.5 * sin(v * OSCILL) + 0.5,
+            0.5 * sin(v * OSCILL + PI * 2.0 / 3.0) + 0.5,
+            0.5 * sin(v * OSCILL + PI * 4.0 / 3.0 + 0.5)
         );
+        gl_Position = u_world_matrix * vec4(point, 1);
+        gl_PointSize = 2.0;
+    } else {
+        gl_PointSize = 0.0;
     }
 
     //gl_FragColor = c;
@@ -84,7 +85,7 @@ uniform mat4 u_world_matrix;
 varying vec4 color;
 void main(){
     gl_Position = u_world_matrix * vec4(a_position, 1);
-    color = vec4(1, 1, 1, 1);
+    color = vec4(0.3, 0.3, 0.3, 1);
 }
 `
 

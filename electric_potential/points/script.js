@@ -143,6 +143,12 @@ function update() {
 
     gl.clear(gl.COLOR_BUFFER_BIT);
 
+    gl.useProgram(line_program);
+    gl.uniformMatrix4fv(u_line_world_matrix_loc, false, m4.gl_format(u_matrix));
+    gl.bindBuffer(gl.ARRAY_BUFFER, axis_lines_buffer);
+    gl.vertexAttribPointer(a_line_position_loc, 3, gl.FLOAT, false, 0, 0);
+    gl.drawArrays(gl.LINES, 0, axis_lines.length / 3);
+
     gl.useProgram(program);
     gl.uniformMatrix4fv(u_world_matrix_loc, false, m4.gl_format(u_matrix));
     gl.bindBuffer(gl.ARRAY_BUFFER, positions_buffer);
@@ -154,12 +160,6 @@ function update() {
     }
     gl.uniform4fv(u_charges_loc, new Float32Array(u_charges_data));
     gl.drawArrays(gl.POINTS, 0, positions.length / 3);
-
-    gl.useProgram(line_program);
-    gl.uniformMatrix4fv(u_line_world_matrix_loc, false, m4.gl_format(u_matrix));
-    gl.bindBuffer(gl.ARRAY_BUFFER, axis_lines_buffer);
-    gl.vertexAttribPointer(a_line_position_loc, 3, gl.FLOAT, false, 0, 0);
-    gl.drawArrays(gl.LINES, 0, axis_lines.length / 3);
 
     requestAnimationFrame(update);
 }
