@@ -131,7 +131,7 @@ function interp_cube_vertexes(contour, p1, p2, pot1, pot2) {
 function populate_buffers() {
     positions = [];
     lines = [];
-    for (let i = 0; i < 255; i ++) {
+    for (let i = 0; i < 256; i ++) {
         let corner_potentials = [];
         for (let b = 0; b < 8; b++) {
             corner_potentials.push((i >> b) & 1);
