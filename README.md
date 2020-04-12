@@ -17,3 +17,31 @@ different types of fields.
 
 In both simulations, your mouse is used to place charges - move and click.
 In the 3D simulation, you can pan with right click and hold.
+
+### Links to all Works-In-Progress
+
+These are different developments made on the above demos. The controls for
+each are roughly the same as those described above.
+
+https://joeiddon.github.io/fields/electric_potential/contours/direct_from_potential/index.html
+
+https://joeiddon.github.io/fields/electric_potential/contours/implict_plot/index.html
+
+https://joeiddon.github.io/fields/electric_potential/index.html
+
+https://joeiddon.github.io/fields/electric_potential/normal_lines/index.html
+
+https://joeiddon.github.io/fields/electric_potential/points/index.html
+
+https://joeiddon.github.io/fields/electric_potential/shells/cubes_demo/index.html
+
+https://joeiddon.github.io/fields/electric_potential/shells/cubes_demo/unfinished_shading/index.html
+
+https://joeiddon.github.io/fields/electric_potential/test_charge_placer/index.html
+
+https://joeiddon.github.io/fields/electric_vector/index.html
+
+https://joeiddon.github.io/fields/electric_vector/one_charge/fast/index.html
+
+https://joeiddon.github.io/fields/electric_vector/one_charge/index.html
+
