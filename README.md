@@ -37,6 +37,8 @@ https://joeiddon.github.io/fields/electric_potential/shells/cubes_demo/index.htm
 
 https://joeiddon.github.io/fields/electric_potential/shells/cubes_demo/unfinished_shading/index.html
 
+https://joeiddon.github.io/fields/electric_potential/shells/index.html
+
 https://joeiddon.github.io/fields/electric_potential/test_charge_placer/index.html
 
 https://joeiddon.github.io/fields/electric_vector/index.html
