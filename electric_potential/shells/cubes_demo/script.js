@@ -34,6 +34,8 @@ gl.clearColor(0, 0, 0, 1);
 gl.enable(gl.BLEND);
 gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
 
+gl.enable(gl.DEPTH_TEST);
+
 let a_position_loc = gl.getAttribLocation(program, 'a_position');
 let u_world_matrix_loc = gl.getUniformLocation(program, 'u_world_matrix');
 
@@ -222,17 +224,19 @@ function update() {
 
     gl.clear(gl.COLOR_BUFFER_BIT);
 
-    gl.useProgram(program);
-    gl.uniformMatrix4fv(u_world_matrix_loc, false, m4.gl_format(u_matrix));
-    gl.bindBuffer(gl.ARRAY_BUFFER, positions_buffer);
-    gl.vertexAttribPointer(a_position_loc, 3, gl.FLOAT, false, 0, 0);
-    gl.drawArrays(gl.TRIANGLES, 0, positions.length / 3);
-
     gl.useProgram(line_program);
     gl.uniformMatrix4fv(u_line_world_matrix_loc, false, m4.gl_format(u_matrix));
     gl.bindBuffer(gl.ARRAY_BUFFER, lines_buffer);
     gl.vertexAttribPointer(a_line_position_loc, 3, gl.FLOAT, false, 0, 0);
     gl.drawArrays(gl.LINES, 0, lines.length / 3);
+
+    gl.depthMask(false); // disables writing to z buffer so all alpha are drawn
+    gl.useProgram(program);
+    gl.uniformMatrix4fv(u_world_matrix_loc, false, m4.gl_format(u_matrix));
+    gl.bindBuffer(gl.ARRAY_BUFFER, positions_buffer);
+    gl.vertexAttribPointer(a_position_loc, 3, gl.FLOAT, false, 0, 0);
+    gl.drawArrays(gl.TRIANGLES, 0, positions.length / 3);
+    gl.depthMask(true);
 
     requestAnimationFrame(update);
 }
