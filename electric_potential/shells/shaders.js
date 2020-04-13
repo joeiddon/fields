@@ -11,6 +11,7 @@
 
 let vertex_shader_src = `
 attribute vec3 a_position;
+attribute vec3 a_color;
 uniform mat4 u_world_matrix;
 varying vec4 color;
 
@@ -19,7 +20,8 @@ void main(){
     gl_Position = u_world_matrix * vec4(point, 1);
 
     //color = vec4(1, 0, 0, 0.5);
-    color = vec4(1, a_position.x / 5.0, 1.0 - a_position.z / 5.0, 0.5);
+    //color = vec4(1, a_position.x / 5.0, 1.0 - a_position.z / 5.0, 0.5);
+    color = vec4(a_color, 0.5);
 }
 `;
 

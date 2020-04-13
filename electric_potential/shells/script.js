@@ -36,12 +36,14 @@ gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
 gl.enable(gl.DEPTH_TEST);
 
 let a_position_loc = gl.getAttribLocation(program, 'a_position');
+let a_color_loc = gl.getAttribLocation(program, 'a_color');
 let u_world_matrix_loc = gl.getUniformLocation(program, 'u_world_matrix');
 
 let a_line_position_loc = gl.getAttribLocation(line_program, 'a_position');
 let u_line_world_matrix_loc = gl.getUniformLocation(line_program, 'u_world_matrix');
 
 gl.enableVertexAttribArray(a_position_loc);
+gl.enableVertexAttribArray(a_color_loc);
 gl.enableVertexAttribArray(a_line_position_loc);
 
 function compute_V(x, y, z) {
@@ -60,6 +62,7 @@ function compute_V(x, y, z) {
 }
 
 let positions = [];
+let colors = [];
 
 function gen_cube_triangles(contour, corner_potentials, corner_vertexes) {
     let cube_index = 0; // an 8-bit integer representing cube type
@@ -108,7 +111,7 @@ function interp_cube_vertexes(contour, p1, p2, pot1, pot2) {
 }
 
 //across each dimension of cube
-let divisions = 10;
+let divisions = 20;
 // verticies of a cube in positive octant, ordered in accordance with diagram
 // at: http://paulbourke.net/geometry/polygonise/ 
 let corner_vertexes = [
@@ -118,9 +121,9 @@ let corner_vertexes = [
 
 function compute_shell(potential) {
     /*
-     * computes the triangles for the shell at potential, returning them
+     * computes the triangles for the shell at potential, adding them to global
+     * positions array, as well as colors to the colors global array
      */
-    let shell_positions = [];
     for (let xx = 0; xx < divisions; xx ++) {
         for (let yy = 0; yy < divisions; yy ++) {
             for (let zz = 0; zz < divisions; zz ++) {
@@ -132,15 +135,21 @@ function compute_shell(potential) {
                 let k = 2 / divisions; //dimension of the cube in space coordinates
                 let this_cube = corner_vertexes.map(p => [k*p[0]+x, k*p[1]+y, k*p[2]+z]);
                 let corner_potentials = this_cube.map(p => compute_V(...p));
-                shell_positions.push(...gen_cube_triangles(
+                let points = gen_cube_triangles(
                     potential,
                     corner_potentials,
                     this_cube
-                ));
+                );
+                positions.push(...points);
+                for (let i = 0; i < points.length / 3; i++)
+                    colors.push(
+                        potential > 0 ? potential / 1.2 : 0,
+                        Math.abs(potential) < 0.001 ? 1 : 0,
+                        potential < 0 ? -potential / 1.2: 0
+                    );
             }
         }
     }
-    return shell_positions;
 }
 
 function populate_positions_buffer() {
@@ -148,16 +157,21 @@ function populate_positions_buffer() {
      * calculates shells using marching cubes algorithm
      * then populates the positions buffer
      */
+    // clear arrays for buffers about to populate
     positions = [];
-    for (let V = -2; V < 2; V += 0.4) {
-        positions.push(...compute_shell(V));
+    colors = [];
+    for (let V = -1.2; V < 1.2; V += 0.4) {
+        compute_shell(V);
     }
     gl.bindBuffer(gl.ARRAY_BUFFER, positions_buffer);
     gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(positions), gl.STATIC_DRAW);
+    gl.bindBuffer(gl.ARRAY_BUFFER, colors_buffer);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(colors), gl.STATIC_DRAW);
 }
 
 let positions_buffer = gl.createBuffer();
 let lines_buffer = gl.createBuffer();
+let colors_buffer = gl.createBuffer();
 
 let lines = [
     // axis lines
@@ -243,11 +257,14 @@ function update() {
     gl.drawArrays(gl.LINES, 0, lines.length / 3);
 
     if (positions.length) {
+        if (colors.length != positions.length) console.error('colors and positions data not same length');
         gl.depthMask(false); // disable writing to z buffer for transparent shells
         gl.useProgram(program);
         gl.uniformMatrix4fv(u_world_matrix_loc, false, m4.gl_format(u_matrix));
         gl.bindBuffer(gl.ARRAY_BUFFER, positions_buffer);
         gl.vertexAttribPointer(a_position_loc, 3, gl.FLOAT, false, 0, 0);
+        gl.bindBuffer(gl.ARRAY_BUFFER, colors_buffer);
+        gl.vertexAttribPointer(a_color_loc, 3, gl.FLOAT, false, 0, 0);
         gl.drawArrays(gl.TRIANGLES, 0, positions.length / 3);
         gl.depthMask(true);
     }
