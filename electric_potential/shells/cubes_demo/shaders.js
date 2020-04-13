@@ -17,7 +17,9 @@ varying vec4 color;
 void main(){
     vec3 point = a_position;
     gl_Position = u_world_matrix * vec4(point, 1);
-    color = vec4(1, 0.4, 0.4, 1);
+
+    //color = vec4(1, 0, 0, 0.5);
+    color = vec4(1, a_position.x / 5.0, 1.0 - a_position.z / 5.0, 0.5);
 }
 `;
 

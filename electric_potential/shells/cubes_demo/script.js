@@ -31,6 +31,9 @@ let line_program = misc.create_gl_program(line_vertex_shader_src, fragment_shade
 //set the color we want to clear to
 gl.clearColor(0, 0, 0, 1);
 
+gl.enable(gl.BLEND);
+gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+
 let a_position_loc = gl.getAttribLocation(program, 'a_position');
 let u_world_matrix_loc = gl.getUniformLocation(program, 'u_world_matrix');
 
